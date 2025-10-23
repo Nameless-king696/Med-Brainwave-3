@@ -2,47 +2,68 @@ body {
   font-family: 'Cairo', sans-serif;
   margin: 0;
   padding: 0;
-  background: #f6f8fa;
-  color: #333;
+  background: #f5f7fa;
 }
 
 header {
-  background: #0078d7;
+  background-color: #0078d7;
   color: white;
-  padding: 15px 20px;
+  padding: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-header nav a {
-  color: white;
-  margin: 0 10px;
-  text-decoration: none;
+header h1 {
+  margin: 0;
 }
 
-section {
-  padding: 50px 20px;
-  text-align: center;
+main {
+  padding: 20px;
 }
 
-.cards {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.card {
+.question-form {
   background: white;
   padding: 20px;
   border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.question-form input,
+.question-form textarea {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.question-form button {
+  background: #0078d7;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.questions-list .question {
+  background: white;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  width: 250px;
+}
+
+.questions-list .answer {
+  margin-top: 10px;
+  color: #555;
 }
 
 footer {
+  text-align: center;
   background: #0078d7;
   color: white;
-  text-align: center;
   padding: 10px;
 }
