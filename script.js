@@ -1,54 +1,91 @@
-const yearSelect = document.getElementById('yearSelect');
-const questionInput = document.getElementById('questionInput');
-const answerInput = document.getElementById('answerInput');
-const addBtn = document.getElementById('addQuestionBtn');
-const container = document.getElementById('questionsContainer');
+// ---------- صفحة الطلاب ----------
+if(document.getElementById("questionText")){
+  const yearSelect = document.getElementById("yearSelect");
+  const subjectSelect = document.getElementById("subjectSelect");
+  const questionText = document.getElementById("questionText");
+  const choicesContainer = document.getElementById("choicesContainer");
+  const nextBtn = document.getElementById("nextBtn");
+  const result = document.getElementById("result");
 
-// تحميل الأسئلة عند تغيير السنة
-yearSelect.addEventListener('change', loadQuestions);
+  let currentIndex = 0;
+  let score = 0;
+  let questions = [];
 
-// إضافة سؤال جديد
-addBtn.addEventListener('click', () => {
-  const question = questionInput.value.trim();
-  const answer = answerInput.value.trim();
-  const year = yearSelect.value;
-
-  if (question && answer) {
+  function loadSubjects(){
+    const year = yearSelect.value;
     const allQuestions = JSON.parse(localStorage.getItem('questions')) || {};
-    if (!allQuestions[year]) allQuestions[year] = [];
-    allQuestions[year].push({ question, answer });
-    localStorage.setItem('questions', JSON.stringify(allQuestions));
-
-    questionInput.value = '';
-    answerInput.value = '';
-    loadQuestions();
-  } else {
-    alert("من فضلك اكتب السؤال والإجابة أولاً.");
-  }
-});
-
-// تحميل الأسئلة الخاصة بالسنة المحددة
-function loadQuestions() {
-  const year = yearSelect.value;
-  const allQuestions = JSON.parse(localStorage.getItem('questions')) || {};
-  const yearQuestions = allQuestions[year] || [];
-
-  container.innerHTML = '';
-  if (yearQuestions.length === 0) {
-    container.innerHTML = '<p>لا توجد أسئلة بعد لهذه السنة.</p>';
-    return;
+    subjectSelect.innerHTML = '<option value="">اختر المادة</option>';
+    if(allQuestions[year]){
+      Object.keys(allQuestions[year]).forEach(sub => {
+        const opt = document.createElement("option");
+        opt.value = sub;
+        opt.textContent = sub;
+        subjectSelect.appendChild(opt);
+      });
+    }
+    questions = [];
+    questionText.textContent = "اختر المادة للبدء";
+    choicesContainer.innerHTML = "";
+    nextBtn.style.display = "none";
+    result.textContent = "";
   }
 
-  yearQuestions.forEach((q, index) => {
-    const div = document.createElement('div');
-    div.classList.add('question');
-    div.innerHTML = `
-      <h3>${index + 1}. ${q.question}</h3>
-      <p class="answer">${q.answer}</p>
-    `;
-    container.appendChild(div);
+  function loadQuestions(){
+    const year = yearSelect.value;
+    const subject = subjectSelect.value;
+    const allQuestions = JSON.parse(localStorage.getItem('questions')) || {};
+    questions = (allQuestions[year] && allQuestions[year][subject]) || [];
+    currentIndex = 0;
+    score = 0;
+    if(questions.length > 0){
+      showQuestion();
+    } else {
+      questionText.textContent = "لا توجد أسئلة لهذه المادة بعد.";
+      choicesContainer.innerHTML = "";
+      nextBtn.style.display = "none";
+      result.textContent = "";
+    }
+  }
+
+  function showQuestion(){
+    const q = questions[currentIndex];
+    questionText.textContent = q.question;
+    choicesContainer.innerHTML = "";
+    result.textContent = "";
+    q.choices.forEach((choice,index)=>{
+      const btn = document.createElement("button");
+      btn.textContent = choice;
+      btn.classList.add("choice-btn");
+      btn.onclick = () => checkAnswer(index);
+      choicesContainer.appendChild(btn);
+    });
+    nextBtn.style.display = "inline-block";
+  }
+
+  function checkAnswer(selectedIndex){
+    const q = questions[currentIndex];
+    if(selectedIndex === q.answer){
+      score++;
+      result.textContent = "إجابة صحيحة!";
+      result.style.color = "green";
+    } else {
+      result.textContent = `إجابة خاطئة. الإجابة الصحيحة: ${q.choices[q.answer]}`;
+      result.style.color = "red";
+    }
+    Array.from(choicesContainer.children).forEach(btn=>btn.disabled=true);
+  }
+
+  nextBtn.addEventListener("click",()=>{
+    currentIndex++;
+    if(currentIndex < questions.length){
+      showQuestion();
+    } else {
+      questionText.textContent = `انتهت الأسئلة! مجموع النقاط: ${score} من ${questions.length}`;
+      choicesContainer.innerHTML="";
+      nextBtn.style.display = "none";
+    }
   });
-}
 
-// تحميل أسئلة السنة الأولى عند فتح الموقع
-loadQuestions();
+  yearSelect.addEventListener("change", loadSubjects);
+  subjectSelect.addEventListener("change", loadQuestions);
+}
