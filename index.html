@@ -1,44 +1,15 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>منصة الأسئلة الطبية</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body dir="rtl">
+<header>
+  <h1>منصة الأسئلة MCQ</h1>
+  <select id="yearSelect">
+    <option value="">اختر السنة</option>
+    <option value="1">السنة الأولى</option>
+    <option value="2">السنة الثانية</option>
+    <option value="3">السنة الثالثة</option>
+    <option value="4">السنة الرابعة</option>
+    <option value="5">السنة الخامسة</option>
+  </select>
 
-  <header>
-    <h1>منصة الأسئلة الطبية</h1>
-    <nav>
-      <select id="yearSelect">
-        <option value="1">السنة الأولى</option>
-        <option value="2">السنة الثانية</option>
-        <option value="3">السنة الثالثة</option>
-        <option value="4">السنة الرابعة</option>
-        <option value="5">السنة الخامسة</option>
-      </select>
-    </nav>
-  </header>
-
-  <main>
-    <section class="question-form">
-      <h2>أضف سؤالًا</h2>
-      <input type="text" id="questionInput" placeholder="اكتب السؤال هنا..." />
-      <textarea id="answerInput" placeholder="اكتب الإجابة هنا..."></textarea>
-      <button id="addQuestionBtn">إضافة السؤال</button>
-    </section>
-
-    <section class="questions-list">
-      <h2>الأسئلة والإجابات</h2>
-      <div id="questionsContainer"></div>
-    </section>
-  </main>
-
-  <footer>
-    <p>© 2025 منصة الأسئلة الطبية - جميع الحقوق محفوظة</p>
-  </footer>
-
-  <script src="script.js"></script>
-</body>
-</html>
+  <select id="subjectSelect">
+    <option value="">اختر المادة</option>
+  </select>
+</header>
