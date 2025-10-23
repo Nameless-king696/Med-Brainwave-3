@@ -1,15 +1,460 @@
-<header>
-  <h1>منصة الأسئلة MCQ</h1>
-  <select id="yearSelect">
-    <option value="">اختر السنة</option>
-    <option value="1">السنة الأولى</option>
-    <option value="2">السنة الثانية</option>
-    <option value="3">السنة الثالثة</option>
-    <option value="4">السنة الرابعة</option>
-    <option value="5">السنة الخامسة</option>
-  </select>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masterclass - طب الأطفال والنساء</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8B0000; --secondary-color: #003366; --accent-color: #FFD700;
+            --background-color: #F5F5F5; --text-color: #333333; --light-text-color: #FFFFFF;
+            --card-bg: #FFFFFF; --border-color: #E0E0E0; --correct-color: #2E7D32;
+            --incorrect-color: #C62828; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); --border-radius: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Cairo', sans-serif; background-color: var(--background-color); color: var(--text-color);
+            line-height: 1.7; font-size: 16px; display: flex; flex-direction: column; min-height: 100vh;
+        }
+        .site-header { background-color: var(--secondary-color); color: var(--light-text-color); padding: 1.5rem 2rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .site-header h1 { font-size: 2.5rem; font-weight: 700; }
+        main { flex: 1; width: 100%; max-width: 1200px; margin: 2rem auto; padding: 0 2rem; overflow: hidden; }
+        .view { display: none; animation: fadeIn 0.5s ease-in-out; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .view-title { text-align: center; color: var(--primary-color); margin-bottom: 2rem; font-size: 2rem; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card { background-color: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 1.5rem; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; border: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
+        .card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .card p { color: #666; flex-grow: 1; }
+        .lesson-header { color: var(--light-text-color); padding: 2rem; border-radius: var(--border-radius); margin-bottom: 2rem; text-align: center; }
+        .lesson-header h2 { font-size: 2.5rem; }
+        .lesson-content { background-color: var(--card-bg); padding: 2rem; border-radius: var(--border-radius); box-shadow: var(--shadow); }
+        .lesson-content h3 { font-size: 1.75rem; margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid; }
+        .lesson-content p, .lesson-content ul, .lesson-content ol { margin-bottom: 1rem; }
+        .lesson-content ul, .lesson-content ol { padding-right: 2rem; }
+        .lesson-content li { margin-bottom: 0.5rem; }
+        .callout { margin-top: 2rem; padding: 1.5rem; border-right: 5px solid var(--accent-color); background-color: #FFFBEA; border-radius: 8px; }
+        .callout h4 { color: #B7791F; font-size: 1.25rem; margin-bottom: 0.75rem; }
+        .test-button-container { text-align: center; margin-top: 3rem; }
+        .test-button { background-color: var(--primary-color); color: var(--light-text-color); border: none; padding: 1rem 2.5rem; font-size: 1.25rem; font-weight: 600; border-radius: 50px; cursor: pointer; transition: background-color 0.3s ease, transform 0.2s ease; box-shadow: 0 4px 10px rgba(139, 0, 0, 0.3); }
+        .test-button:hover { background-color: #A50000; transform: translateY(-2px); }
+        .quiz-container { background-color: var(--card-bg); padding: 2rem; border-radius: var(--border-radius); box-shadow: var(--shadow); max-width: 800px; margin: 0 auto; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .quiz-header h3 { color: var(--secondary-color); font-size: 1.5rem; }
+        #progress-text { font-weight: 600; color: var(--primary-color); }
+        .progress-bar-container { width: 100%; height: 10px; background-color: var(--border-color); border-radius: 5px; margin-bottom: 2rem; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background-color: var(--accent-color); transition: width 0.3s ease-in-out; }
+        #question-stem { font-size: 1.25rem; font-weight: 500; margin-bottom: 2rem; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        .option-btn { width: 100%; padding: 1rem; font-size: 1rem; text-align: right; background-color: #F9F9F9; border: 2px solid var(--border-color); border-radius: 12px; cursor: pointer; transition: all 0.2s ease; }
+        .option-btn:hover:not(:disabled) { border-color: var(--secondary-color); background-color: #EBF5FF; }
+        .option-btn:disabled { cursor: not-allowed; }
+        .option-btn.correct { background-color: #E8F5E9; border-color: var(--correct-color); color: var(--correct-color); font-weight: 600; }
+        .option-btn.incorrect { background-color: #FFEBEE; border-color: var(--incorrect-color); color: var(--incorrect-color); font-weight: 600; }
+        #explanation { margin-top: 1.5rem; padding: 1rem; border-radius: 8px; background-color: #F0F4F8; border: 1px solid #D3DFE9; display: none; }
+        .quiz-navigation { display: flex; justify-content: space-between; margin-top: 2rem; }
+        .nav-btn { background-color: var(--secondary-color); color: var(--light-text-color); border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; font-family: 'Cairo', sans-serif; }
+        .nav-btn:hover { background-color: #004488; }
+        .nav-btn:disabled { background-color: #B0BEC5; cursor: not-allowed; }
+        #quiz-results-view h2 { color: var(--primary-color); text-align: center; font-size: 2.5rem; margin-bottom: 1rem; }
+        #score-text { text-align: center; font-size: 1.5rem; font-weight: 600; margin-bottom: 2rem; }
+        .results-summary { margin-top: 2rem; }
+        .results-summary h3 { color: var(--secondary-color); margin-bottom: 1rem; }
+        .incorrect-question { background-color: #FFF8F8; border: 1px solid var(--incorrect-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .incorrect-question p { margin-bottom: 0.5rem; }
+        .results-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
+        .site-footer { background-color: #E0E0E0; color: #757575; text-align: center; padding: 1rem; font-style: italic; margin-top: 2rem; }
+        .back-btn { display: inline-block; margin-bottom: 2rem; background-color: transparent; color: var(--secondary-color); border: 2px solid var(--secondary-color); padding: 0.5rem 1rem; border-radius: 50px; text-decoration: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: 'Cairo', sans-serif; }
+        .back-btn:hover { background-color: var(--secondary-color); color: var(--light-text-color); }
+        #ai-tutor-fab { position: fixed; bottom: 25px; left: 25px; width: 60px; height: 60px; background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); color: white; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); cursor: pointer; z-index: 1000; transition: transform 0.2s ease, opacity 0.3s; }
+        #ai-tutor-fab:hover { transform: scale(1.1); }
+        #ai-tutor-fab svg { width: 32px; height: 32px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1001; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.visible { display: flex; }
+        .modal-window { background-color: var(--card-bg); border-radius: var(--border-radius); box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; padding: 2rem; width: 90%; max-width: 500px; }
+        .modal-overlay.visible .modal-window { transform: scale(1); opacity: 1; }
+        .modal-header { margin-bottom: 1.5rem; }
+        .modal-header h3 { color: var(--secondary-color); font-size: 1.5rem; }
+        .modal-body p { margin-bottom: 1rem; }
+        .modal-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; direction: ltr; text-align: left; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
+        .modal-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+        .modal-btn.primary { background-color: var(--secondary-color); color: white; }
+        .modal-btn.secondary { background-color: #eee; color: #333; }
+        #chat-window { width: 100%; height: 100%; }
+        .chat-header { padding: 1rem; background-color: var(--secondary-color); color: var(--light-text-color); display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h3 { font-size: 1.2rem; }
+        #close-chat-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+        #chat-messages { flex-grow: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+        .chat-message { padding: 0.75rem 1rem; border-radius: 12px; max-width: 80%; line-height: 1.5; word-wrap: break-word; }
+        .chat-message.user { background-color: #E3F2FD; color: #1E88E5; align-self: flex-start; border-bottom-left-radius: 0; }
+        .chat-message.ai { background-color: #F1F8E9; color: #558B2F; align-self: flex-end; border-bottom-right-radius: 0; }
+        .chat-message.error { background-color: #FFEBEE; color: var(--incorrect-color); align-self: flex-end; border-bottom-right-radius: 0; }
+        .chat-message.loading { align-self: flex-end; }
+        .typing-indicator { display: flex; align-items: center; gap: 5px; }
+        .typing-indicator span { width: 8px; height: 8px; background-color: #ccc; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; } .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        .chat-input-form { display: flex; padding: 1rem; border-top: 1px solid var(--border-color); }
+        #chat-input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 20px; padding: 0.75rem 1rem; font-family: 'Cairo', sans-serif; font-size: 1rem; margin-left: 0.5rem; }
+        #chat-send-btn { background-color: var(--secondary-color); border: none; color: white; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 0.2s; }
+        #chat-send-btn:hover { background-color: #004488; }
+        #chat-send-btn svg { width: 20px; height: 20px; }
+        @media (max-width: 768px) {
+            body { font-size: 15px; } main { padding: 0 1rem; margin: 1rem auto; } .site-header h1 { font-size: 1.8rem; }
+            .lesson-header h2 { font-size: 1.8rem; } .lesson-content, .quiz-container { padding: 1.5rem; }
+            #ai-tutor-fab { width: 50px; height: 50px; bottom: 20px; left: 20px; } #ai-tutor-fab svg { width: 28px; height: 28px; }
+        }
+    </style>
+</head>
+<body>
 
-  <select id="subjectSelect">
-    <option value="">اختر المادة</option>
-  </select>
-</header>
+    <header class="site-header"><h1>Medical Masterclass</h1></header>
+
+    <main id="app-container">
+        <!-- Views remain the same -->
+        <section id="course-list-view" class="view active"><h2 class="view-title">اختر المادة الدراسية</h2><div id="course-grid" class="card-grid"></div></section>
+        <section id="subject-list-view" class="view"><button class="back-btn">&larr; العودة إلى المواد</button><h2 id="subject-view-title" class="view-title"></h2><div id="subject-grid" class="card-grid"></div></section>
+        <section id="topic-list-view" class="view"><button class="back-btn">&larr; العودة إلى التخصصات</button><h2 id="topic-view-title" class="view-title"></h2><div id="topic-grid" class="card-grid"></div></section>
+        <section id="lesson-view" class="view"><button class="back-btn">&larr; العودة إلى الدروس</button><div id="lesson-container"></div></section>
+        <section id="quiz-view" class="view"><button class="back-btn">&larr; العودة إلى الدرس</button><div class="quiz-container"><div class="quiz-header"><h3 id="quiz-title"></h3><span id="progress-text"></span></div><div class="progress-bar-container"><div id="progress-bar"></div></div><p id="question-stem"></p><div id="options-grid"></div><div id="explanation"></div><div class="quiz-navigation"><button id="prev-btn" class="nav-btn">السابق</button><button id="next-btn" class="nav-btn">التالي</button></div></div></section>
+        <section id="quiz-results-view" class="view"><button class="back-btn">&larr; العودة إلى الدروس</button><div class="quiz-container"><h2>اكتمل الاختبار!</h2><p id="score-text"></p><div class="results-summary"><h3>مراجعة إجاباتك:</h3><div id="incorrect-answers-container"></div></div><div class="results-actions"><button id="retry-quiz-btn" class="nav-btn">إعادة الاختبار</button><button id="back-to-topics-btn" class="nav-btn">العودة إلى الدروس</button></div></div></section>
+    </main>
+
+    <button id="ai-tutor-fab" aria-label="Open AI Tutor" style="display: none;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 1-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 1 3.09-3.09L12 5.25l.813 2.846a4.5 4.5 0 0 1 3.09 3.09L18.75 12l-2.846.813a4.5 4.5 0 0 1-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.898 20.572 16.5 21.75l-.398-1.178a3.375 3.375 0 0 0-2.455-2.456L12.75 18l1.178-.398a3.375 3.375 0 0 0 2.455-2.456L16.5 14.25l.398 1.178a3.375 3.375 0 0 0 2.456 2.456L20.25 18l-1.178.398a3.375 3.375 0 0 0-2.456 2.456Z" /></svg></button>
+    
+    <!-- Modals Container -->
+    <div id="api-key-modal" class="modal-overlay"><div class="modal-window"><div class="modal-header"><h3>مطلوب مفتاح API</h3></div><div class="modal-body"><p>لاستخدام المساعد الذكي، يرجى إدخال مفتاح Gemini API الخاص بك. يمكنك الحصول على مفتاح مجاني من Google AI Studio.</p><input type="password" id="api-key-input" class="modal-input" placeholder="أدخل مفتاح API هنا..."></div><div class="modal-footer"><button id="cancel-api-key" class="modal-btn secondary">إلغاء</button><button id="save-api-key" class="modal-btn primary">حفظ</button></div></div></div>
+    <div id="chat-modal" class="modal-overlay"><div class="modal-window" id="chat-window"><div class="chat-header"><h3>المساعد الذكي</h3><button id="close-chat-btn">&times;</button></div><div id="chat-messages"></div><form id="chat-input-form" class="chat-input-form"><button id="chat-send-btn" type="submit"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.405Z" /></svg></button><input type="text" id="chat-input" placeholder="اسأل عن الدرس أو السؤال..." autocomplete="off"></form></div></div>
+    
+    <footer class="site-footer">Prepared by Abdallah Hamza</footer>
+
+    <script>
+        // --- DATA STORE ---
+        const masterContent = {
+            pediatrics: {
+                title: 'طب الأطفال / Pediatrics', color: '#003366',
+                subjects: [ {
+                    id: 'hematology', title: 'أمراض الدم / Hematology', shortDescription: 'اضطرابات الدم ونخاع العظام.',
+                    lessons: [ { id: 'ida', title: 'أنيميا نقص الحديد', shortDescription: 'السبب الأكثر شيوعاً للأنيميا عالمياً.', summary: { overview: `أنيميا نقص الحديد (IDA) هي أنيميا تتميز بصغر حجم خلايا الدم الحمراء ونقص الهيموجلوبين (microcytic, hypochromic)، وتنتج عن عدم كفاية الحديد لدعم الإنتاج الطبيعي لخلايا الدم الحمراء.`, etiology: `<ul><li><strong>زيادة الحاجة:</strong> الرضاعة، المراهقة، الحمل.</li><li><strong>زيادة الفقد:</strong> نزيف الجهاز الهضمي، الدورة الشهرية.</li><li><strong>نقص المدخول/الامتصاص:</strong> نظام غذائي غير كافٍ، سوء الامتصاص.</li></ul>`, pathophysiology: `نقص الحديد يعطل تصنيع الهيم، مما يؤدي لإنتاج خلايا دم حمراء أصغر وأقل هيموجلوبين، فتقل قدرة الدم على حمل الأكسجين.`, clinicalFeatures: `إرهاق، شحوب، ضيق تنفس. علامات خاصة مثل تقَعُّر الأظافر (Koilonychia) والتهاب اللسان.`, investigations: `صورة دم كاملة (CBC) تظهر MCV و MCH منخفضين. الاختبار الحاسم هو انخفاض **فيريتين المصل (Serum Ferritin)**.`, management: `علاج السبب الأساسي وتعويض الحديد عن طريق الفم (كبريتات الحديدوز) أو الوريد في حالات خاصة.`, complications: `فشل القلب، تأخر النمو عند الأطفال.`, prognosis: `ممتاز مع العلاج المناسب.`, examTips: ["الفيريتين المنخفض هو أهم اختبار تشخيصي.", "ارتفاع RDW يميزها عن الثلاسيميا.", "ابحث عن سبب النزيف في كبار السن."], clinicalPearls: ["افحص نقص الحديد في مرضى متلازمة تململ الساقين."], additionalNotes: ["أنيميا الأمراض المزمنة قد تكون مشابهة لكن الفيريتين يكون طبيعياً أو مرتفعاً."] }, quiz: [ { stem: "أي من النتائج المخبرية التالية هي الأكثر تحديدًا لتشخيص أنيميا نقص الحديد؟", options: ["انخفاض حديد المصل", "ارتفاع TIBC", "انخفاض فيريتين المصل", "انخفاض تشبع الترانسفرين"], answerIndex: 2, explanation: "انخفاض فيريتين المصل هو الاختبار الأكثر تحديدًا لأنه يعكس نضوب مخزون الحديد في الجسم." }, { stem: "ما هي الخطوة التالية الأكثر أهمية في إدارة رجل يبلغ من العمر 65 عامًا تم تشخيصه بأنيميا نقص الحديد؟", options: ["بدء جرعة عالية من الحديد الفموي", "إعطاء الحديد عن طريق الوريد", "إحالته لعمل منظار هضمي", "وصف نظام غذائي غني باللحوم"], answerIndex: 2, explanation: "يجب اعتبار أنيميا نقص الحديد في رجل كبير السن علامة على فقدان الدم من الجهاز الهضمي (قد يكون ورمًا) حتى يثبت العكس." } ] },
+                                  { id: 'leukemia', title: 'اللوكيميا الحادة', shortDescription: 'تكاثر خبيث للخلايا المكونة للدم.', summary: { overview: 'Content coming soon...' }, quiz: [] } ]
+                }, { id: 'cardiology_peds', title: 'أمراض القلب', shortDescription: 'أمراض القلب الخلقية والمكتسبة.', lessons: [] } ]
+            },
+            obgyn: {
+                title: 'أمراض النساء والتوليد', color: '#8B0000',
+                subjects: [ { id: 'obstetrics', title: 'علم التوليد', shortDescription: 'الرعاية أثناء الحمل والولادة.', lessons: [] }, { id: 'gynecology', title: 'علم أمراض النساء', shortDescription: 'صحة الجهاز التناسلي الأنثوي.', lessons: [] } ]
+            }
+        };
+
+        // --- APPLICATION LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = {
+                // DOM Elements
+                views: document.querySelectorAll('.view'),
+                courseGridView: document.getElementById('course-grid'),
+                subjectGridView: document.getElementById('subject-grid'),
+                topicGridView: document.getElementById('topic-grid'),
+                lessonContainer: document.getElementById('lesson-container'),
+                quizContainer: document.querySelector('#quiz-view .quiz-container'),
+                aiTutorFab: document.getElementById('ai-tutor-fab'),
+                apiKeyModal: document.getElementById('api-key-modal'),
+                apiKeyInput: document.getElementById('api-key-input'),
+                saveApiKeyBtn: document.getElementById('save-api-key'),
+                cancelApiKeyBtn: document.getElementById('cancel-api-key'),
+                chatModal: document.getElementById('chat-modal'),
+                closeChatBtn: document.getElementById('close-chat-btn'),
+                chatMessagesContainer: document.getElementById('chat-messages'),
+                chatInputForm: document.getElementById('chat-input-form'),
+                chatInput: document.getElementById('chat-input'),
+                
+                // State
+                navigationStack: [], currentCourseId: null, currentSubjectId: null, currentLesson: null,
+                currentQuestionIndex: 0, userAnswers: [], isChatLoading: false, geminiApiKey: null,
+
+                init() {
+                    this.geminiApiKey = localStorage.getItem('geminiApiKey');
+                    this.addEventListeners();
+                    this.renderCourseList();
+                    this.showView('course-list-view');
+                    window.addEventListener('online', () => this.updateFabVisibility());
+                    window.addEventListener('offline', () => this.updateFabVisibility());
+                },
+
+                addEventListeners() {
+                    document.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', () => this.navigateBack()));
+                    this.aiTutorFab.addEventListener('click', () => this.handleFabClick());
+                    this.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
+                    this.cancelApiKeyBtn.addEventListener('click', () => this.apiKeyModal.classList.remove('visible'));
+                    this.closeChatBtn.addEventListener('click', () => this.chatModal.classList.remove('visible'));
+                    this.chatInputForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleSendMessage(); });
+                },
+
+                updateFabVisibility() {
+                    const isOnline = navigator.onLine;
+                    const activeView = this.navigationStack[this.navigationStack.length - 1]?.viewId;
+                    const isChatAvailableView = ['lesson-view', 'quiz-view'].includes(activeView);
+                    
+                    if (isOnline && isChatAvailableView) {
+                        this.aiTutorFab.style.display = 'flex';
+                    } else {
+                        this.aiTutorFab.style.display = 'none';
+                    }
+                },
+
+                showView(viewId, state = {}) {
+                    this.views.forEach(view => view.classList.remove('active'));
+                    document.getElementById(viewId).classList.add('active');
+                    window.scrollTo(0, 0);
+                    if (this.navigationStack.length === 0 || this.navigationStack[this.navigationStack.length - 1].viewId !== viewId) {
+                         this.navigationStack.push({ viewId, state });
+                    }
+                    this.updateFabVisibility();
+                },
+                
+                navigateBack() {
+                    this.navigationStack.pop();
+                    if (this.navigationStack.length > 0) {
+                        const previous = this.navigationStack.pop();
+                        const { viewId, state } = previous;
+                        if (viewId === 'course-list-view') this.renderCourseList();
+                        else if (viewId === 'subject-list-view') this.showSubjectList(state.courseId);
+                        else if (viewId === 'topic-list-view') this.showTopicList(state.courseId, state.subjectId);
+                        else if (viewId === 'lesson-view') this.showLesson(state.lessonId);
+                        else this.showView(viewId, state);
+                    }
+                },
+
+                renderCourseList() {
+                    this.courseGridView.innerHTML = Object.keys(masterContent).map(courseId => {
+                        const course = masterContent[courseId];
+                        return `<div class="card" data-course-id="${courseId}" style="border-top: 5px solid ${course.color};"><h3 style="color: ${course.color};">${course.title}</h3></div>`;
+                    }).join('');
+                    this.courseGridView.querySelectorAll('.card').forEach(card => card.addEventListener('click', (e) => this.showSubjectList(e.currentTarget.dataset.courseId)));
+                    this.showView('course-list-view');
+                },
+
+                showSubjectList(courseId) {
+                    this.currentCourseId = courseId;
+                    const course = masterContent[courseId];
+                    document.getElementById('subject-view-title').textContent = `تخصصات ${course.title}`;
+                    this.subjectGridView.innerHTML = course.subjects.map(subject => `<div class="card" data-subject-id="${subject.id}"><h3 style="color: ${course.color};">${subject.title}</h3><p>${subject.shortDescription}</p></div>`).join('');
+                    this.subjectGridView.querySelectorAll('.card').forEach(card => card.addEventListener('click', (e) => this.showTopicList(courseId, e.currentTarget.dataset.subjectId)));
+                    this.showView('subject-list-view', { courseId });
+                },
+
+                showTopicList(courseId, subjectId) {
+                    this.currentCourseId = courseId;
+                    this.currentSubjectId = subjectId;
+                    const subject = masterContent[courseId].subjects.find(s => s.id === subjectId);
+                    const courseColor = masterContent[courseId].color;
+                    document.getElementById('topic-view-title').textContent = `دروس ${subject.title}`;
+                    this.topicGridView.innerHTML = subject.lessons.length === 0 ? `<p style="text-align:center; grid-column: 1 / -1;">سيتم إضافة الدروس قريباً.</p>` : subject.lessons.map(lesson => `<div class="card topic-card" data-lesson-id="${lesson.id}"><h3 style="color: ${courseColor};">${lesson.title}</h3><p>${lesson.shortDescription}</p></div>`).join('');
+                    this.topicGridView.querySelectorAll('.topic-card').forEach(card => {
+                        card.addEventListener('click', (e) => {
+                            const lesson = subject.lessons.find(l => l.id === e.currentTarget.dataset.lessonId);
+                            this.showLesson(lesson);
+                        });
+                    });
+                    this.showView('topic-list-view', { courseId, subjectId });
+                },
+
+                showLesson(lesson) {
+                    this.currentLesson = lesson;
+                    const courseColor = masterContent[this.currentCourseId].color;
+                    const { title, summary } = this.currentLesson;
+                    let summaryHtml = '';
+                    for (const key in summary) {
+                        const titleCaseKey = key.charAt(0).toUpperCase() + key.slice(1);
+                        let content = Array.isArray(summary[key]) ? `<ul>${summary[key].map(item => `<li>${item}</li>`).join('')}</ul>` : `<p>${summary[key]}</p>`;
+                        summaryHtml += `<h3 style="border-color:${courseColor}; color:${courseColor};">${titleCaseKey}</h3><div>${content}</div>`;
+                    }
+                    this.lessonContainer.innerHTML = `<header class="lesson-header" style="background-color: ${courseColor};"><h2>${title}</h2></header><div class="lesson-content">${summaryHtml}<div class="test-button-container"><button class="test-button" style="background-color: ${courseColor};">اختبر نفسك</button></div></div>`;
+                    this.lessonContainer.querySelector('.test-button').addEventListener('click', () => this.startQuiz());
+                    this.showView('lesson-view', { lessonId: lesson.id });
+                },
+
+                startQuiz() {
+                    this.userAnswers = new Array(this.currentLesson.quiz.length).fill(null);
+                    this.currentQuestionIndex = 0;
+                    this.quizContainer.querySelector('#quiz-title').textContent = `اختبار: ${this.currentLesson.title}`;
+                    this.renderQuestion();
+                    this.showView('quiz-view', { lessonId: this.currentLesson.id });
+                },
+
+                renderQuestion() {
+                    const question = this.currentLesson.quiz[this.currentQuestionIndex];
+                    this.quizContainer.querySelector('#question-stem').textContent = question.stem;
+                    const optionsGrid = this.quizContainer.querySelector('#options-grid');
+                    optionsGrid.innerHTML = question.options.map((opt, index) => `<button class="option-btn" data-index="${index}">${opt}</button>`).join('');
+                    this.quizContainer.querySelector('#explanation').style.display = 'none';
+                    optionsGrid.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => this.selectAnswer(parseInt(btn.dataset.index)));
+                    });
+                    this.updateProgress();
+                },
+
+                selectAnswer(selectedIndex) {
+                    this.userAnswers[this.currentQuestionIndex] = selectedIndex;
+                    this.showAnswerFeedback(this.currentLesson.quiz[this.currentQuestionIndex], selectedIndex);
+                },
+
+                showAnswerFeedback(question, selectedIndex) {
+                    const optionButtons = this.quizContainer.querySelectorAll('.option-btn');
+                    optionButtons.forEach((btn, index) => {
+                        btn.disabled = true;
+                        if (index === question.answerIndex) btn.classList.add('correct');
+                        else if (index === selectedIndex) btn.classList.add('incorrect');
+                    });
+                    const explanationEl = this.quizContainer.querySelector('#explanation');
+                    explanationEl.textContent = `الشرح: ${question.explanation}`;
+                    explanationEl.style.display = 'block';
+                },
+
+                updateProgress() {
+                    const total = this.currentLesson.quiz.length;
+                    this.quizContainer.querySelector('#progress-text').textContent = `سؤال ${this.currentQuestionIndex + 1} من ${total}`;
+                    this.quizContainer.querySelector('#progress-bar').style.width = `${((this.currentQuestionIndex + 1) / total) * 100}%`;
+                    const nextBtn = this.quizContainer.querySelector('#next-btn');
+                    nextBtn.textContent = (this.currentQuestionIndex === total - 1) ? 'إنهاء الاختبار' : 'التالي';
+                    nextBtn.onclick = () => this.navigateQuestion(1);
+                    const prevBtn = this.quizContainer.querySelector('#prev-btn');
+                    prevBtn.disabled = this.currentQuestionIndex === 0;
+                    prevBtn.onclick = () => this.navigateQuestion(-1);
+                },
+
+                navigateQuestion(direction) {
+                    const total = this.currentLesson.quiz.length;
+                    if (direction === 1 && this.currentQuestionIndex === total - 1) { this.showResults(); return; }
+                    this.currentQuestionIndex += direction;
+                    if (this.currentQuestionIndex >= 0 && this.currentQuestionIndex < total) this.renderQuestion();
+                },
+
+                showResults() {
+                    const quizData = this.currentLesson.quiz;
+                    let correct = 0;
+                    let incorrectHtml = '';
+                    this.userAnswers.forEach((answer, index) => {
+                        const q = quizData[index];
+                        if (answer === q.answerIndex) correct++;
+                        else { incorrectHtml += `<div class="incorrect-question"><p><strong>السؤال:</strong> ${q.stem}</p><p style="color: var(--incorrect-color);"><strong>إجابتك:</strong> ${answer !== null ? q.options[answer] : 'لم تتم الإجابة'}</p><p style="color: var(--correct-color);"><strong>الإجابة الصحيحة:</strong> ${q.options[q.answerIndex]}</p><p><em>${q.explanation}</em></p></div>`; }
+                    });
+                    document.getElementById('score-text').textContent = `نتيجتك: ${correct} من ${quizData.length} (${Math.round((correct / quizData.length) * 100)}%)`;
+                    document.getElementById('incorrect-answers-container').innerHTML = incorrectHtml || "<p>تهانينا، لقد أجبت على جميع الأسئلة بشكل صحيح!</p>";
+                    document.getElementById('retry-quiz-btn').onclick = () => this.startQuiz();
+                    document.getElementById('back-to-topics-btn').onclick = () => this.showTopicList(this.currentCourseId, this.currentSubjectId);
+                    this.showView('quiz-results-view');
+                },
+                
+                handleFabClick() {
+                    if (!this.geminiApiKey) {
+                        this.apiKeyModal.classList.add('visible');
+                    } else {
+                        this.openChat();
+                    }
+                },
+
+                saveApiKey() {
+                    const key = this.apiKeyInput.value.trim();
+                    if (key) {
+                        this.geminiApiKey = key;
+                        localStorage.setItem('geminiApiKey', key);
+                        this.apiKeyModal.classList.remove('visible');
+                        this.openChat();
+                    } else {
+                        alert('الرجاء إدخال مفتاح API صحيح.');
+                    }
+                },
+
+                openChat() {
+                    this.chatMessagesContainer.innerHTML = '';
+                    const context = this.getCurrentContext();
+                    const systemPrompt = `You are an expert medical tutor from Egypt, speaking in Arabic. Your role is to help a medical student understand the provided context. Be encouraging, clear, and focus on clinical reasoning. The student is currently viewing the following content:\n\n${context}\n\nStart the conversation by welcoming the student and asking how you can help with this specific topic.`;
+                    this.chatHistory = [{ role: "system", parts: [{ text: systemPrompt }] }];
+                    this.addMessageToChat('ai', 'أهلاً بك! أنا هنا لمساعدتك. كيف يمكنني أن أوضح لك أي جزء من هذا الموضوع؟');
+                    this.chatModal.classList.add('visible');
+                    this.chatInput.focus();
+                },
+
+                getCurrentContext() {
+                    const activeViewId = document.querySelector('.view.active').id;
+                    if (activeViewId === 'lesson-view') return `Lesson: ${this.currentLesson.title}\n\nContent:\n${JSON.stringify(this.currentLesson.summary, null, 2)}`;
+                    if (activeViewId === 'quiz-view') {
+                        const q = this.currentLesson.quiz[this.currentQuestionIndex];
+                        return `Quiz Question for lesson "${this.currentLesson.title}":\n\nStem: ${q.stem}\nOptions: ${JSON.stringify(q.options)}\nCorrect Answer: ${q.options[q.answerIndex]}`;
+                    }
+                    return "No specific context available.";
+                },
+                
+                addMessageToChat(role, text) {
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('chat-message', role);
+                    messageElement.textContent = text;
+                    this.chatMessagesContainer.appendChild(messageElement);
+                    this.chatMessagesContainer.scrollTop = this.chatMessagesContainer.scrollHeight;
+                },
+                
+                showLoadingIndicator() {
+                    this.isChatLoading = true;
+                    this.chatMessagesContainer.insertAdjacentHTML('beforeend', `<div class="chat-message ai loading" id="loading-indicator"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`);
+                    this.chatMessagesContainer.scrollTop = this.chatMessagesContainer.scrollHeight;
+                },
+
+                hideLoadingIndicator() {
+                    this.isChatLoading = false;
+                    const indicator = document.getElementById('loading-indicator');
+                    if (indicator) indicator.remove();
+                },
+
+                async handleSendMessage() {
+                    const userInput = this.chatInput.value.trim();
+                    if (!userInput || this.isChatLoading) return;
+                    this.addMessageToChat('user', userInput);
+                    this.chatHistory.push({ role: "user", parts: [{ text: userInput }] });
+                    this.chatInput.value = '';
+                    this.showLoadingIndicator();
+                    try {
+                        const aiResponse = await this.callGeminiAPI(this.chatHistory);
+                        this.hideLoadingIndicator();
+                        this.addMessageToChat('ai', aiResponse);
+                        this.chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+                    } catch (error) {
+                        this.hideLoadingIndicator();
+                        this.addMessageToChat('error', 'عذراً، حدث خطأ في الشبكة أو في الاتصال بالخادم. يرجى التأكد من صحة مفتاح API والمحاولة مرة أخرى.');
+                        console.error("Gemini API Error:", error);
+                    }
+                },
+                
+                async callGeminiAPI(history) {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${this.geminiApiKey}`;
+                    const apiHistory = history.filter(msg => msg.role !== 'system').map(msg => ({ role: msg.role === 'ai' ? 'model' : msg.role, parts: msg.parts }));
+                    const systemInstruction = history.find(msg => msg.role === 'system');
+                    const payload = { contents: apiHistory, systemInstruction, generationConfig: { temperature: 0.7, topP: 1, topK: 1, maxOutputTokens: 2048 } };
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) {
+                        const errorBody = await response.json();
+                        console.error("API Error Response:", errorBody);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                        return result.candidates[0].content.parts[0].text;
+                    } else {
+                        console.warn("Unexpected API response structure:", result);
+                        if (result.promptFeedback && result.promptFeedback.blockReason) {
+                            return `تم حظر الطلب لسبب: ${result.promptFeedback.blockReason}. قد يكون هذا بسبب إعدادات الأمان.`;
+                        }
+                        return "لم أتمكن من الحصول على إجابة. قد يكون هناك مشكلة في الطلب أو إعدادات الأمان.";
+                    }
+                }
+            };
+            app.init();
+        });
+    </script>
+</body>
+</html>
